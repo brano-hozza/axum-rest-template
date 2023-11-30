@@ -1,3 +1,5 @@
 mod errors;
 mod models;
-pub mod router;
+mod router;
+
+pub use router::router;

@@ -1,11 +1,10 @@
-use axum::routing::post;
-use axum::{routing::get, Router};
+use axum::Router;
 use clap::Parser;
 use sqlx::postgres::PgPoolOptions;
 
 use axum_rest_template::config::Config;
 
-use axum_rest_template::user::router;
+use axum_rest_template::user;
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
@@ -31,9 +30,7 @@ async fn main() -> Result<(), sqlx::Error> {
 
     assert_eq!(row.0, 150);
     // build our application with a single route
-    let app = Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
-        .route("/user", post(router::create_user));
+    let app = Router::new().nest("/user", user::router());
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

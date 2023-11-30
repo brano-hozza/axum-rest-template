@@ -1,18 +1,39 @@
 use super::models::{CreateUser, User};
-use axum::{http::StatusCode, Json};
+use axum::{
+    extract::Path,
+    http::StatusCode,
+    routing::{get, post},
+    Json, Router,
+};
 
-pub async fn create_user(
-    // this argument tells axum to parse the request body
-    // as JSON into a `CreateUser` type
-    Json(payload): Json<CreateUser>,
-) -> (StatusCode, Json<User>) {
-    // insert your application logic here
+pub fn router() -> Router {
+    // `POST /users`
+    Router::new()
+        .route("/:id", get(get_user))
+        .route("/", post(create_user))
+}
+
+pub async fn get_user(
+    Path(raw_id): Path<String>,
+) -> Result<(StatusCode, Json<User>), (StatusCode, String)> {
+    let id = raw_id.parse::<u64>();
+    if id.is_err() {
+        return Err((StatusCode::BAD_REQUEST, String::from("Invalid ID")));
+    }
+
+    let user = User {
+        id: id.unwrap(),
+        username: "jill".to_string(),
+    };
+
+    Ok((StatusCode::OK, Json(user)))
+}
+
+pub async fn create_user(Json(payload): Json<CreateUser>) -> (StatusCode, Json<User>) {
     let user = User {
         id: 1337,
         username: payload.username,
     };
 
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
     (StatusCode::CREATED, Json(user))
 }
